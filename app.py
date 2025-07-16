@@ -1,27 +1,24 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="NCoS Digital Forms", layout="centered")
+st.set_page_config(page_title="NCoS Forms Catalogue", layout="wide")
 
-st.title("📘 Nigerian Correctional Service - Admission Register")
+st.title("📘 Nigerian Correctional Service - Forms & Books Catalogue")
 
-st.write("Fill this form to admit a new inmate.")
+# Load the CSV
+try:
+    df = pd.read_csv("forms_catalogue.csv")
+except FileNotFoundError:
+    st.error("forms_catalogue.csv not found in the project directory.")
+    st.stop()
 
-with st.form("admission_form"):
-    name = st.text_input("Inmate Full Name")
-    crime = st.text_input("Offence Committed")
-    date_admitted = st.date_input("Date of Admission")
-    officer = st.text_input("Admitting Officer's Name")
+# Search bar
+search_term = st.text_input("Search by Title or Number", "").lower()
 
-    submitted = st.form_submit_button("Submit")
+# Filter results
+filtered_df = df[df.apply(lambda row:
+    search_term in str(row["Title"]).lower() or
+    search_term in str(row["Number"]).lower(), axis=1)]
 
-    if submitted:
-        data = {
-            "Name": name,
-            "Offence": crime,
-            "Date Admitted": date_admitted,
-            "Admitting Officer": officer
-        }
-        df = pd.DataFrame([data])
-        df.to_excel("admission_register.xlsx", index=False)
-        st.success("Admission registered and saved successfully!")
+# Display table
+st.dataframe(filtered_df, use_container_width=True)
