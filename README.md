@@ -5,6 +5,8 @@ An AI-powered digital reference tool for cataloguing official forms and register
 *Note
 The Forms and Books Titles used for the purpose of this showcase are obsolete as their names have changed by the NCoS Acts 2019 while some are not used any longer. The point of using them is to just showcase the solutions while while not going against the ethics of the service.
 
+
+[Click Here to view the app](https://ncos-digital-forms-fvjvdpsikyhrtcfn5y3xpw.streamlit.app/#1-a-additional-information-of-superintendent)
 ---
 
 ## Project Overview
@@ -104,7 +106,9 @@ Future Improvements
 
 Project Credits
 
-Developed by Anjorin Olanrewaju Olumuyiwa, Product Manager & Public Relations Officer at the Nigerian Correctional Service (Oyo Command), as part of the 3MTT Nigeria Product Management program.
+Developed by Anjorin Olanrewaju Olumuyiwa, Product Manager, Scrum Master & Public Relations Officer at the Nigerian Correctional Service (Oyo Command), as part of the 3MTT Nigeria Product Management program.
+
+[Let’s connect on LinkedIn](https://www.linkedin.com/in/olanrewaju-anjorin-73719a29?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
 
 
 ---
