@@ -1,6 +1,9 @@
 # NCoS Forms & Books Catalogue
 
-An AI-powered digital reference tool for cataloguing official forms and registers used in the Nigerian Correctional Service (NCoS). Built as part of the 3MTT Product Management capstone project, this app provides a searchable and smart interface to explore over 100 correctional administrative documents.
+An AI-powered digital reference tool for cataloguing official forms and registers used in the Nigerian Correctional Service (NCoS). Built as part of the 3MTT Product Management capstone project, this app provides a searchable and smart interface to explore over 100 correctional administrative documents. This app was inspired by the reality that across our correctional centres, where we rely heavily on structured forms and official books to carry out key duties—from admitting inmates to processing rations and court orders. However, these resources are becoming less familiar to newer officers, many of whom don’t know what the forms are for or how to use them. This knowledge gap affects operational flow and professionalism.
+
+*Note
+The Forms and Books Titles used for the purpose of this showcase are obsolete as their names have changed by the NCoS Acts 2019 while some are not used any longer. The point of using them is to just showcase the solutions while while not going against the ethics of the service.
 
 ---
 
