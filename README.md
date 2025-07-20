@@ -100,6 +100,7 @@ Future Improvements
 
 [ ] Enable offline (static) export option
 
+This is a practical, scalable, and easy-to-use solution built for internal government operations. It can be adapted to other ministries, agencies, or even local governments—anywhere structured documentation is key.
 
 
 ---
