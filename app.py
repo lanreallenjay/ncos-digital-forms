@@ -6,14 +6,16 @@ import streamlit as st
 import requests
 
 # =========================
-# Page & Session Setup
+# Page Setup
 # =========================
 st.set_page_config(page_title="NCoS Forms Catalogue", layout="wide")
 st.title("📘 Nigerian Correctional Service - Forms & Books Catalogue")
 
 CSV_FILE = "forms_catalogue.csv"
 
-# Session containers
+# =========================
+# Session State
+# =========================
 if "ai_cache" not in st.session_state:
     st.session_state.ai_cache = {}  # {(number,title): generated_text}
 
@@ -28,17 +30,11 @@ def load_catalogue(csv_path: str) -> pd.DataFrame:
         st.error(f"❌ `{csv_path}` not found. Please upload it to the project root.")
         st.stop()
     df = pd.read_csv(csv_path, dtype=str).fillna("")
-    # Ensure required columns exist
     for col in ["Number", "Title", "Description"]:
         if col not in df.columns:
             df[col] = ""
     if "Corrected" not in df.columns:
         df["Corrected"] = ""
-    # Normalize types
-    df["Number"] = df["Number"].astype(str)
-    df["Title"] = df["Title"].astype(str)
-    df["Description"] = df["Description"].astype(str)
-    df["Corrected"] = df["Corrected"].astype(str)
     return df
 
 def save_catalogue(df: pd.DataFrame, csv_path: str = CSV_FILE):
@@ -48,11 +44,10 @@ def save_catalogue(df: pd.DataFrame, csv_path: str = CSV_FILE):
             df[c] = ""
     df[cols].to_csv(csv_path, index=False)
 
-# Load data
 df = load_catalogue(CSV_FILE)
 
 # =========================
-# Admin Login
+# Sidebar: Admin & AI Provider
 # =========================
 with st.sidebar:
     st.subheader("🔐 Admin")
@@ -72,8 +67,16 @@ with st.sidebar:
             st.session_state.logged_in = False
             st.rerun()
 
+    st.divider()
+    st.subheader("⚙️ AI Provider")
+    provider = st.radio(
+        "Choose AI Provider",
+        ["OpenRouter (free)", "OpenAI (paid)"],
+        index=0  # default to OpenRouter
+    )
+
 # =========================
-# AI Description (OpenAI / OpenRouter)
+# AI Description (Provider-Aware)
 # =========================
 def generate_ai_description(title: str, number: str) -> str:
     prompt = (
@@ -88,57 +91,61 @@ def generate_ai_description(title: str, number: str) -> str:
         "Avoid sensitive data or legal advice. Keep it concise and practical."
     )
 
-    # OpenAI via REST
-    openai_key = os.getenv("OPENAI_API_KEY")
-    if openai_key:
-        try:
-            url = "https://api.openai.com/v1/chat/completions"
-            model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-            headers = {"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"}
-            payload = {
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": "You are a helpful assistant for cataloguing forms."},
-                    {"role": "user", "content": prompt},
-                ],
-                "temperature": 0.3,
-            }
-            resp = requests.post(url, headers=headers, data=json.dumps(payload), timeout=30)
-            if resp.status_code == 200:
-                data = resp.json()
-                text = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
-                return text if text else "❌ AI returned an empty response."
-            else:
-                return f"❌ OpenAI error: {resp.status_code} – {resp.text}"
-        except Exception as e:
-            return f"❌ OpenAI exception: {e}"
+    if provider == "OpenRouter (free)":
+        openrouter_key = st.secrets.get("OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+        if openrouter_key:
+            try:
+                url = "https://openrouter.ai/api/v1/chat/completions"
+                model = os.getenv("OPENROUTER_MODEL", "openai/gpt-3.5-turbo")
+                headers = {"Authorization": f"Bearer {openrouter_key}", "Content-Type": "application/json"}
+                payload = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant for cataloguing forms."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.3,
+                }
+                resp = requests.post(url, headers=headers, data=json.dumps(payload), timeout=30)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    text = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+                    return text if text else "❌ AI returned an empty response."
+                else:
+                    return f"❌ OpenRouter error: {resp.status_code} – {resp.text}"
+            except Exception as e:
+                return f"❌ OpenRouter exception: {e}"
+        else:
+            return "❌ OpenRouter API key not set."
 
-    # OpenRouter fallback
-    openrouter_key = os.getenv("OPENROUTER_API_KEY")
-    if openrouter_key:
-        try:
-            url = "https://openrouter.ai/api/v1/chat/completions"
-            model = os.getenv("OPENROUTER_MODEL", "openai/gpt-3.5-turbo")
-            headers = {"Authorization": f"Bearer {openrouter_key}", "Content-Type": "application/json"}
-            payload = {
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": "You are a helpful assistant for cataloguing forms."},
-                    {"role": "user", "content": prompt},
-                ],
-                "temperature": 0.3,
-            }
-            resp = requests.post(url, headers=headers, data=json.dumps(payload), timeout=30)
-            if resp.status_code == 200:
-                data = resp.json()
-                text = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
-                return text if text else "❌ AI returned an empty response."
-            else:
-                return f"❌ OpenRouter error: {resp.status_code} – {resp.text}"
-        except Exception as e:
-            return f"❌ OpenRouter exception: {e}"
+    elif provider == "OpenAI (paid)":
+        openai_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+        if openai_key:
+            try:
+                url = "https://api.openai.com/v1/chat/completions"
+                model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+                headers = {"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"}
+                payload = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant for cataloguing forms."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.3,
+                }
+                resp = requests.post(url, headers=headers, data=json.dumps(payload), timeout=30)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    text = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+                    return text if text else "❌ AI returned an empty response."
+                else:
+                    return f"❌ OpenAI error: {resp.status_code} – {resp.text}"
+            except Exception as e:
+                return f"❌ OpenAI exception: {e}"
+        else:
+            return "❌ OpenAI API key not set."
 
-    return "❌ No AI provider configured. Please set OPENAI_API_KEY or OPENROUTER_API_KEY."
+    return "❌ No AI provider configured."
 
 # =========================
 # Browse & Generate Section
